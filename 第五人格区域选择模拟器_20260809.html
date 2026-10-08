@@ -1,0 +1,2447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第五人格区域选择工具 | Identity V Region Selection</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+:root {
+  --primary: #6366f1;
+  --primary-light: #818cf8;
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --secondary: #f472b6;
+  --secondary-light: #f9a8d4;
+  --secondary-glow: rgba(244, 114, 182, 0.4);
+  --accent: #fbbf24;
+  --accent-light: #fcd34d;
+  --accent-glow: rgba(251, 191, 36, 0.4);
+  --success: #34d399;
+  --success-glow: rgba(52, 211, 153, 0.3);
+  --bg: #0f172a;
+  --bg-elevated: rgba(255, 255, 255, 0.06);
+  --bg-hover: rgba(255, 255, 255, 0.12);
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.2);
+  --text: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --radius: 13px;
+  --radius-sm: 9px;
+  --radius-lg: 19px;
+  --shadow: 0 3px 13px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.05);
+  --shadow-lg: 0 13px 34px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  --shadow-glow-primary: 0 0 20px var(--primary-glow);
+  --shadow-glow-secondary: 0 0 20px var(--secondary-glow);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(244, 114, 182, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.08) 0%, transparent 50%);
+  animation: bgFloat 15s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes bgFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-2%, 2%) rotate(1deg); }
+  66% { transform: translate(2%, -1%) rotate(-1deg); }
+}
+
+.particles {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: particleFloat linear infinite;
+}
+@keyframes particleFloat {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+}
+
+.bg-noise {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.header {
+  position: relative;
+  text-align: center;
+  padding: 34px 13px 23px;
+  z-index: 2;
+  overflow: hidden;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 201px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-light), var(--secondary), var(--accent), transparent);
+  border-radius: 1px;
+}
+.header h1 {
+  font-size: 37px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #fff 0%, var(--primary-light) 30%, var(--secondary-light) 60%, var(--accent-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+  animation: titlePulse 3s ease-in-out infinite;
+  margin-bottom: 5px;
+}
+@keyframes titlePulse {
+  0%, 100% { filter: drop-shadow(0 0 13px rgba(99, 102, 241, 0.2)); }
+  50% { filter: drop-shadow(0 0 27px rgba(244, 114, 182, 0.4)); }
+}
+.header .subtitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 11px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.header .subtitle::before,
+.header .subtitle::after {
+  content: '';
+  display: block;
+  width: 27px; height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-light));
+}
+.header .subtitle::after {
+  background: linear-gradient(90deg, var(--secondary-light), transparent);
+}
+
+.main-container {
+  position: relative;
+  z-index: 2;
+  max-width: 1474px;
+  margin: 0 auto;
+  padding: 0 16px 21px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.map-selector {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 11px 13px;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+}
+.map-selector::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.map-card {
+  position: relative;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 107px;
+  max-width: 147px;
+}
+.map-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.map-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow));
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.map-card:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-glow-primary);
+}
+.map-card:hover .map-icon {
+  transform: scale(1.15) rotate(-5deg);
+}
+.map-card.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(244, 114, 182, 0.08));
+  border-color: var(--primary-light);
+  box-shadow: 0 0 20px var(--primary-glow), inset 0 0 13px rgba(99, 102, 241, 0.05);
+}
+.map-card.active::before { opacity: 1; }
+.map-card.active::after { opacity: 0.5; }
+.map-card.active .map-icon {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  box-shadow: 0 0 17px var(--primary-glow);
+  transform: scale(1.1);
+}
+.map-card .map-icon {
+  width: 27px; height: 27px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.map-card .map-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.map-card .map-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.map-card .map-name-en {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 643px;
+  gap: 16px;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.main-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.top-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 12px 19px;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.top-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.map-title-group {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+.map-title {
+  font-size: 19px;
+  font-weight: 900;
+  background: linear-gradient(90deg, var(--primary-light), var(--secondary-light), #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+.map-title-en {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-left: 9px;
+  border-left: 1px solid var(--border);
+}
+
+.cipher-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  padding: 7px 16px;
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  justify-self: center;
+  position: relative;
+  overflow: hidden;
+}
+.cipher-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.cipher-nav:hover::before { opacity: 0.3; }
+.switch-btn {
+  width: 27px; height: 27px;
+  background: var(--bg-elevated);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: bold;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.switch-btn:hover {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border-color: transparent;
+  transform: scale(1.2) rotate(5deg);
+  box-shadow: 0 0 17px var(--primary-glow);
+  color: #fff;
+}
+.cipher-info {
+  text-align: center;
+  min-width: 107px;
+  position: relative;
+  z-index: 1;
+}
+.cipher-label {
+  font-size: 9px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.cipher-text {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--accent);
+  text-shadow: 0 0 17px var(--accent-glow);
+  letter-spacing: 1px;
+}
+.cipher-dots {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 5px;
+}
+.cipher-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: all 0.3s;
+  position: relative;
+}
+.cipher-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  transform: scale(1.3);
+}
+
+.side-toggle {
+  display: flex;
+  background: rgba(0,0,0,0.25);
+  border-radius: 20px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 5px rgba(0,0,0,0.2);
+}
+.side-btn {
+  padding: 8px 19px;
+  border-radius: 17px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-secondary);
+  border: none;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+.side-btn.active { color: #fff; }
+.side-btn:first-child.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 3px 13px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(255,255,255,0.1);
+}
+.side-btn:last-child.active {
+  background: linear-gradient(135deg, #f472b6, #fb7185);
+  box-shadow: 0 3px 13px var(--secondary-glow), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+.map-viewer {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 19px;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.map-viewer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.map-container {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  box-shadow: inset 0 0 34px rgba(0,0,0,0.8), 0 10px 34px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.08);
+  width: 100%;
+}
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+.map-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0.95;
+}
+.map-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  cursor: crosshair;
+}
+
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 19px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  flex-wrap: nowrap;
+  gap: 11px;
+  flex-shrink: 0;
+}
+.reset-btn {
+  padding: 9px 21px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  box-shadow: 0 3px 13px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.1);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+.reset-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+.reset-btn:hover::before {
+  left: 100%;
+}
+.reset-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 5px 20px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.15);
+}
+.selection-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+.info-text {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05));
+  padding: 8px 16px;
+  border-radius: 16px;
+  color: var(--accent);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 13px rgba(251, 191, 36, 0.08), inset 0 0 7px rgba(251, 191, 36, 0.05);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+}
+.info-text:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 13px rgba(251, 191, 36, 0.15);
+}
+
+.legend-inline {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  padding: 7px 13px;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.legend-dot.survivor {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 0 7px rgba(59, 130, 246, 0.4);
+}
+.legend-dot.hunter {
+  background: linear-gradient(135deg, #f472b6, #fb7185);
+  box-shadow: 0 0 7px var(--secondary-glow);
+}
+.legend-dot.lock {
+  background: transparent;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 7px var(--accent-glow);
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  gap: 13px;
+}
+.loading-spinner {
+  width: 37px; height: 37px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--primary);
+  border-right-color: var(--secondary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 13px var(--primary-glow);
+}
+.loading-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.image-error {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  gap: 9px;
+  color: var(--secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.zone-click-effect {
+  position: absolute;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  border: 1px solid;
+  transform: translate(-50%, -50%);
+  animation: ripple 0.8s ease-out forwards;
+  pointer-events: none;
+  z-index: 20;
+}
+@keyframes ripple {
+  from { width: 13px; height: 13px; opacity: 0.9; border-width: 2px; }
+  to { width: 100px; height: 100px; opacity: 0; border-width: 0px; }
+}
+
+.footer {
+  text-align: center;
+  padding: 27px 20px;
+  margin-top: 13px;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 2;
+}
+.footer .footer-line {
+  font-size: 14px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin: 4px 0;
+  font-weight: 500;
+}
+.footer .footer-line.version {
+  font-size: 12px;
+  color: rgba(255,255,255,0.2);
+  margin-top: 8px;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--primary-light), var(--secondary-light)); }
+
+.toast-message {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.95), rgba(251, 113, 133, 0.95));
+  color: #fff;
+  padding: 9px 21px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 5px 21px var(--secondary-glow), 0 0 0 1px rgba(255,255,255,0.1);
+  letter-spacing: 0.5px;
+}
+.toast-message.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.distance-panel {
+  position: relative;
+  z-index: 2;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.distance-panel-inner {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 19px;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden auto;
+  flex: 1;
+  min-height: 0;
+}
+.distance-panel-inner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #ef4444, #f97316, #fbbf24);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.distance-panel h3 {
+  /* 样式已内联到 HTML 中，与 .map-title-group 保持一致 */
+}
+.distance-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.hunter-position-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(244, 114, 182, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  padding: 13px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.hunter-position-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--primary-light), var(--secondary-light));
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.hunter-position-card h4 {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--primary-light);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.hint-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(244, 114, 182, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.hint-card::before {
+  background: linear-gradient(180deg, var(--primary-light), var(--secondary-light));
+}
+.hint-card h4 {
+  color: var(--primary-light);
+}
+.hint-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.coord-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.coord-row:last-child { border-bottom: none; }
+.coord-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.coord-value {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+.coord-value.name {
+  font-size: 10px;
+  font-weight: 900;
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text);
+}
+
+/* 两列布局样式 */
+.coord-row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.coord-pair {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.coord-pair .coord-label {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.coord-pair .coord-value {
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.coord-pair .coord-value.name {
+  font-size: 10px;
+}
+.coord-row.two-col .coord-pair:only-child {
+  grid-column: 1 / -1;
+}
+
+.cipher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-x: auto;
+  min-width: 0;
+}
+.cipher-list-header {
+  display: grid;
+  grid-template-columns: 35px 0.9fr 1.8fr 87px;
+  gap: 7px;
+  padding: 11px 13px;
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  text-align: center;
+  min-width: 335px;
+}
+.cipher-row {
+  display: grid;
+  grid-template-columns: 35px 0.9fr 1.8fr 87px;
+  gap: 7px;
+  padding: 11px 13px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: all 0.3s;
+  align-items: center;
+  margin-bottom: 4px;
+  cursor: pointer;
+  text-align: center;
+  min-width: 335px;
+}
+.cipher-row:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border-hover);
+  padding-left: 17px;
+  padding-right: 12px;
+}
+.cipher-row.farthest {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.02));
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  box-shadow: 0 0 13px rgba(251, 191, 36, 0.08);
+}
+.cipher-row.farthest .cipher-id {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  color: #000;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+.cipher-id {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text);
+  transition: all 0.3s;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+.cipher-coord, .cipher-dist {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: 'Courier New', monospace;
+}
+.cipher-row .cipher-coord:nth-child(2) {
+  font-size: 13px;
+  font-weight: 800;
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.cipher-row.farthest .cipher-coord:nth-child(2) {
+  color: #fbbf24;
+  text-shadow: 0 0 7px rgba(251, 191, 36, 0.3);
+}
+.cipher-dist {
+  color: var(--text-secondary);
+}
+.cipher-row.farthest .cipher-dist {
+  color: #fbbf24;
+  font-weight: 800;
+  text-shadow: 0 0 7px rgba(251, 191, 36, 0.3);
+}
+.cipher-row.selected-cipher {
+  background: linear-gradient(90deg, rgba(52, 211, 153, 0.1), rgba(52, 211, 153, 0.02));
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  box-shadow: 0 0 13px rgba(52, 211, 153, 0.08);
+}
+.cipher-row.selected-cipher .cipher-id {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: #000;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+}
+.cipher-row.locked {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.03));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 13px rgba(251, 191, 36, 0.1);
+}
+.cipher-row.locked .cipher-id {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #000;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+.cipher-row.locked .cipher-coord:nth-child(2) {
+  color: #fbbf24;
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
+@media (max-width: 938px) {
+  .content-grid {
+    grid-template-columns: 1fr 576px;
+    gap: 13px;
+  }
+  .distance-panel-inner {
+    padding: 13px;
+  }
+}
+
+@media (max-width: 804px) {
+  .content-grid {
+    grid-template-columns: 1fr 482px;
+  }
+  .cipher-list-header, .cipher-row {
+    min-width: 281px;
+    grid-template-columns: 29px 0.8fr 2.0fr 80px;
+    gap: 5px;
+    padding: 8px 9px;
+  }
+  .cipher-id {
+    width: 17px; height: 17px;
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 686px) {
+  .main-container {
+    padding: 0 11px 21px;
+    gap: 11px;
+  }
+  .map-selector {
+    padding: 8px 11px;
+    gap: 7px;
+  }
+  .map-card {
+    min-width: 94px;
+    padding: 7px 9px;
+  }
+  .map-card .map-icon {
+    width: 24px; height: 24px;
+    font-size: 13px;
+  }
+  .map-card .map-name {
+    font-size: 10px;
+  }
+  .content-grid {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+  }
+  .distance-panel {
+    margin-top: 0;
+  }
+  .distance-panel-inner {
+    flex: none;
+    overflow-y: visible;
+  }
+  .top-bar {
+    grid-template-columns: 1fr;
+    gap: 11px;
+    justify-items: center;
+    padding: 9px 13px;
+  }
+  .cipher-nav {
+    justify-self: center;
+  }
+  .action-bar {
+    justify-content: space-between;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .legend-inline {
+    gap: 8px;
+    padding: 5px 9px;
+  }
+  .info-text {
+    padding: 5px 9px;
+    font-size: 9px;
+  }
+  .coord-row.two-col {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 429px) {
+  .header h1 { font-size: 24px; }
+  .map-card { min-width: 80px; }
+  .map-card .map-icon { width: 21px; height: 21px; font-size: 12px; }
+  .top-bar { padding: 9px 12px; }
+  .map-title { font-size: 16px; }
+  .side-btn { padding: 7px 13px; font-size: 10px; }
+  .legend-inline { gap: 9px; padding: 5px 11px; }
+  .legend-item { font-size: 9px; }
+  .legend-dot { width: 7px; height: 7px; }
+  .action-bar { justify-content: center; }
+  .cipher-list-header, .cipher-row {
+    min-width: 241px;
+    grid-template-columns: 27px 0.7fr 2.2fr 74px;
+    gap: 4px;
+    padding: 7px 8px;
+    font-size: 10px;
+  }
+  .cipher-id {
+    width: 15px; height: 15px;
+    font-size: 7px;
+  }
+  .cipher-coord, .cipher-dist { font-size: 8px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-noise"></div>
+<div class="particles" id="particles"></div>
+
+<div class="header">
+  <h1>第五人格区域选择模拟器</h1>
+  <div class="subtitle">Identity V Region Selection Simulator</div>
+</div>
+
+<div class="main-container">
+  <div class="map-selector" id="mapSelector"></div>
+  
+  <div class="content-grid">
+    <div class="main-left">
+      <div class="top-bar">
+        <div class="map-title-group">
+          <div class="map-title" id="currentMapTitle">军工厂</div>
+          <div class="map-title-en" id="currentMapTitleEn">Arms Factory</div>
+        </div>
+
+        <div class="cipher-nav">
+          <div class="switch-btn" id="prevCipher">‹</div>
+          <div class="cipher-info">
+            <div class="cipher-text" id="cipherText">第 1 / 5 组密码机</div>
+            <div class="cipher-dots" id="cipherDots"></div>
+          </div>
+          <div class="switch-btn" id="nextCipher">›</div>
+        </div>
+
+        <div class="side-toggle" id="sideToggle">
+          <div class="side-btn active" data-side="1">求生者</div>
+          <div class="side-btn" data-side="-1">监管者</div>
+        </div>
+      </div>
+
+      <div class="map-viewer">
+        <div class="map-container">
+          <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">加载地图资源...</div>
+          </div>
+          <div class="map-wrapper" id="mapWrapper">
+            <img id="mapImage" class="map-image" alt="地图" />
+            <canvas id="mapCanvas" class="map-canvas"></canvas>
+          </div>
+          <div class="image-error" id="imageError" style="display: none;">
+            <span>⚠️ 地图资源加载失败，请检查网络连接</span>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button class="reset-btn" id="resetBtn">⟲ 重置选择</button>
+          <div class="legend-inline" id="legendInline">
+            <div class="legend-item">
+              <div class="legend-dot survivor"></div>
+              <span>求生者区域</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot hunter"></div>
+              <span>监管者区域</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot lock"></div>
+              <span>封禁密码机</span>
+            </div>
+          </div>
+          <div class="selection-info">
+            <span class="info-text" id="survivorInfo">求生者已选择 0 / 4 个区域</span>
+            <span class="info-text" id="hunterInfo">监管者已选择 0 / 1 个区域</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="distance-panel" id="distancePanel">
+      <div class="distance-panel-inner">
+        <h3 style="display:flex;align-items:center;gap:9px;margin-bottom:16px;padding-bottom:11px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <span style="font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--primary-light),var(--secondary-light),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;">📏 密码机分析面板</span>
+          <span style="font-size:11px;font-weight:600;color:var(--text-secondary);letter-spacing:1px;text-transform:uppercase;padding-left:9px;border-left:1px solid var(--border);">CIPHER ANALYSIS PANEL</span>
+        </h3>
+        <div class="distance-grid">
+          <div class="cipher-list" id="cipherList">
+            <div class="cipher-list-header">
+              <span>编号</span>
+              <span>密码机名称</span>
+              <span>刷机特点</span>
+              <span>像素坐标</span>
+            </div>
+            <div id="cipherRows"></div>
+          </div>
+          <div class="hunter-position-card" id="hunterPositionCard">
+            <h4>🎯 监管者位置</h4>
+            <div class="coord-row two-col">
+              <div class="coord-pair">
+                <span class="coord-label">区域名称</span>
+                <span class="coord-value name" id="hunterZoneName">--</span>
+              </div>
+              <div class="coord-pair">
+                <span class="coord-label">区域中心像素坐标</span>
+                <span class="coord-value" id="hunterPixelCoord">--</span>
+              </div>
+            </div>
+            <div class="coord-row two-col">
+              <div class="coord-pair">
+                <span class="coord-label">封禁密码机名称</span>
+                <span class="coord-value name" id="lockCipherName">--</span>
+              </div>
+              <div class="coord-pair">
+                <span class="coord-label">封禁密码机像素距离</span>
+                <span class="coord-value" id="lockCipherDist">--</span>
+              </div>
+            </div>
+            <div class="coord-row two-col">
+              <div class="coord-pair">
+                <span class="coord-label">地图像素尺寸</span>
+                <span class="coord-value" id="mapSize">--</span>
+              </div>
+              <div class="coord-pair" style="opacity:0;pointer-events:none;">
+                <span class="coord-label">.</span>
+                <span class="coord-value">.</span>
+              </div>
+            </div>
+          </div>
+          <div class="hunter-position-card hint-card" id="hintCard">
+            <h4>💡 提示</h4>
+            <div class="coord-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding:10px 0;">
+              <div class="hint-text" id="hintFixed" style="color:var(--text);">--</div>
+              <div class="hint-text" id="hintDynamic" style="color:var(--text-secondary);">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <p class="footer-line">北京大学第五人格赛事</p>
+  <p class="footer-line">PIL (Peking University Identity V League)</p>
+  <p class="footer-line">莲莲有鱼鱼</p>
+  <p class="footer-line version">2026.7</p>
+</div>
+
+<div class="toast-message" id="toastMessage"></div>
+
+<script>
+function initParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#6366f1', '#f472b6', '#fbbf24', '#8b5cf6', '#34d399'];
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 2.68 + 1.34;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    container.appendChild(p);
+  }
+}
+initParticles();
+
+const MAPS_DATA = [
+  {
+    id: 0, name: '军工厂', nameEn: 'Arms Factory',
+    size: [699, 600],
+    zonesInfo: [29, 25, 211, 185, 3, 3],
+    ciphersCoords: [
+      [0, 2, 3, 5, 7, 8, 11],
+      [0, 2, 3, 6, 8, 9, 11],
+      [0, 2, 4, 5, 7, 8, 9],
+      [0, 1, 4, 6, 7, 10, 11],
+      [0, 1, 3, 5, 7, 8, 10]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/9/92/1zf3pup4bhi28dk1ne1a6f3wd8ga936.png',
+      'https://patchwiki.biligame.com/images/dwrg/8/86/4jkmh0s3ck3g4xnhnjaf5k4wbaqslt3.png',
+      'https://patchwiki.biligame.com/images/dwrg/2/2d/om6ykpytwryi9a73u74ccj29ok0vvaq.png',
+      'https://patchwiki.biligame.com/images/dwrg/5/5f/epk4i8bhnp0gyte6r9fsq2v2eleitae.png',
+      'https://patchwiki.biligame.com/images/dwrg/d/db/ozzxwofbnr6iacolqn19fw5uxpj09u4.png'
+    ],
+    fixedHint: '军工厂通过中场（DE组）的情况，就能确定全图的密码机分布。只要中场不是仅有一台在四合院的机的情况，小屋区（G组）就有两台。',
+    hints: [
+      '军工厂标准情况：若中场仅一台，且在四合院，则七台机呈均匀分布。',
+      '四合院没机情况：若中场仅一台，且为人皇机（不是四合院），则废料区有机、小屋区有两台。',
+      '军工厂标准情况：若中场仅一台，且在四合院，则七台机呈均匀分布。',
+      '废料区没机情况：若中场有两台（四合院+人皇机），则废料区没机、小屋区有两台。由于废料区没机，左下求生者容易与中下求生者撞机，选择中下的求生者应当警惕。中场两台容易形成极为靠近的三连，建议优先破开其中一台。',
+      '军工厂标准情况：若中场仅一台，且在四合院，则七台机呈均匀分布。'
+    ],
+    zoneNames: ['左上 侧门废墟', '左中 侧门', '左下 废料区', '中上 伐木林', '中心 中场', '中下 装卸区', '右上 正门废墟', '右中 正门', '右下 工厂']
+  },
+  {
+    id: 1, name: '圣心医院', nameEn: 'Sacred Heart Hospital',
+    size: [644, 604],
+    zonesInfo: [66, 19, 188, 175.1, 3, 3],
+    ciphersCoords: [
+      [1, 2, 4, 5, 6, 8, 10],
+      [1, 3, 4, 5, 7, 8, 9],
+      [0, 2, 4, 6, 7, 8, 10],
+      [0, 2, 3, 5, 7, 9, 10],
+      [1, 2, 3, 5, 6, 9, 10]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/b/be/p9ual4k6iaa3z34qhf4vysvzk2r8qr2.png',
+      'https://patchwiki.biligame.com/images/dwrg/3/3d/4c5y8dr3vyuhepeflp4ffdl2li1cdfs.png',
+      'https://patchwiki.biligame.com/images/dwrg/0/01/18n8snczidfb3euqtudehh9yov1a36a.png',
+      'https://patchwiki.biligame.com/images/dwrg/d/d1/qxw3bl6ysrxh7idnywvue4iq80aph1z.png',
+      'https://patchwiki.biligame.com/images/dwrg/0/07/tbxtbs0jpu7yfeq0y4ee4lcft41chr9.png'
+    ],
+    fixedHint: '圣心医院的密码机分布非常有规律。中心医院（A组）必然有1台，环绕医院的三大区（BCD组）每区必然刷新2台，形成1+2+2+2=7的布局。',
+    hints: [
+      '',
+      '左上区域容易容易形成三连，建议优先破开其中一台。如果你发现小屋没机，则小屋废墟有两台（由B组三刷二规律推导出）。',
+      '左上区域只出现一台机，若监管者选择右下，左上区域会出现开局无机可修的局面。',
+      '正门+正门三板+废弃石像容易形成三连，建议优先破开其中一台。',
+      '鸟笼+正门三板+废弃石像容易形成极为靠近的三连，建议优先破开其中一台。'
+    ],
+    zoneNames: ['左上 雕像角落', '左中 医院雕像', '左下 西废墟', '中上 小屋废墟', '中心 医院', '中下 正门', '右上 小屋', '右中 东废墟', '右下 废弃石像']
+  },
+  {
+    id: 2, name: '红教堂', nameEn: 'The Red Church',
+    size: [596, 599],
+    zonesInfo: [74.5, 105, 163, 142, 3, 3],
+    ciphersCoords: [
+      [0, 3, 4, 6, 7, 9, 10],
+      [0, 1, 5, 6, 7, 8, 10],
+      [0, 1, 3, 4, 5, 7, 10],
+      [0, 1, 2, 5, 6, 7, 9],
+      [0, 2, 4, 5, 6, 8, 10]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/d/db/j7vngkgvjt8edxbkc3898o6humx8nel.png',
+      'https://patchwiki.biligame.com/images/dwrg/c/c0/nqhwz8zmfxuasam32br5lmlxk55wq8j.png',
+      'https://patchwiki.biligame.com/images/dwrg/b/b0/qmwykvc07h659iq6oy2hawc2q7cjse9.png',
+      'https://patchwiki.biligame.com/images/dwrg/8/86/3edayfda0bsoj3ibmu4sgqw20zvqscm.png',
+      'https://patchwiki.biligame.com/images/dwrg/a/ac/awo7uhe29s5med5dzi70uf9fzpog0jr.png'
+    ],
+    fixedHint: '红教堂在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。注意，人皇机属于右侧区。',
+    hints: [
+      '右上区域匮乏密码机，中心求生者容易与右中求生者撞机；若墓园机被封，右侧求生者只能选择破译人皇机。危墙容易形成三连。',
+      '若监管者选左上，墓园机被封且小屋没机，则中上求生者容易与右中求生者撞机。危墙容易形成三连。',
+      '红毯花园没机情况：右上区域四连（小屋+侧门+人皇机+教堂）密码机富裕。右上区域极容易形成三连，建议优先破开其中一台。',
+      '',
+      '对称情况：左侧区两台，中间区三台，右侧区两台，富有对称美。'
+    ],
+    zoneNames: ['左上 北危墙', '左中 危墙废墟', '左下 南危墙', '中上 小屋', '中心 教堂', '中下 红毯花园', '右上 侧门', '右中 侧门废墟', '右下 墓园']
+  },
+  {
+    id: 3, name: '湖景村', nameEn: 'Lakeside Village',
+    size: [750, 750],
+    zonesInfo: [100, 135, 150, 171, 4, 3],
+    ciphersCoords: [
+      [0, 1, 3, 5, 7, 9, 10],
+      [0, 1, 3, 4, 5, 6, 9],
+      [0, 1, 3, 4, 5, 7, 8],
+      [0, 2, 3, 4, 7, 9, 10],
+      [0, 1, 2, 4, 5, 6, 8]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/7/76/97kil18w9gnw21pwk6rwd3kvj8hno3s.png',
+      'https://patchwiki.biligame.com/images/dwrg/3/3a/i5by8edxtlu9cw4cv16jnfmuymftgy2.png',
+      'https://i0.hdslb.com/bfs/new_dyn/f5c631e6d9721bd2379f66e795e9f717262863779.png',
+      'https://patchwiki.biligame.com/images/dwrg/2/2e/4fmc2j0swn0xpw8kbf6yf6cf1at3wka.png',
+      'https://patchwiki.biligame.com/images/dwrg/1/1c/lv8s86vtcc8rr6a8xsas5zcdc96c0ux.png'
+    ],
+    fixedHint: '湖景村在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。',
+    hints: [
+      '若中场没机，则左侧区有三台，整体环形分布。如果你发现小船有机，则工地草棚也有机，也能说明左侧区有三台。',
+      '',
+      '',
+      '如果你发现海边石滩没机，则左侧区有三台。如果你发现小船有机，则工地草棚也有机，也能说明左侧区有三台。',
+      '右侧区三台情况：如果你发现浅滩草棚没机，则右侧区有三台。中场+正门+海边木棚容易形成三连。'
+    ],
+    zoneNames: ['左上 玉米地', '左中 小船', '左下 工地草棚', '中左上 小屋', '中左中 小船侧', '中左下 正门废墟', '中右上 浅滩草棚', '中右中 中场', '中右下 正门', '右上 海边石滩', '右中 大船', '右下 海边木棚']
+  },
+  {
+    id: 4, name: '月亮河公园', nameEn: 'Moonlit River Park',
+    size: [750, 523],
+    zonesInfo: [7, 46, 184, 143.5, 4, 3],
+    ciphersCoords: [
+      [0, 1, 3, 4, 7, 8, 10],
+      [0, 1, 4, 5, 7, 9, 10],
+      [0, 1, 4, 6, 8, 9, 11],
+      [0, 1, 4, 6, 7, 9, 11],
+      [0, 1, 3, 5, 8, 10, 11]
+    ],
+    urls: [
+      'https://i0.hdslb.com/bfs/new_dyn/e04808d5b33c49ccbb5a1f6f4aa437d9262863779.png',
+      'https://patchwiki.biligame.com/images/dwrg/6/6a/rvq3m10uku7c55auheoqas6a1up0hi1.png',
+      'https://patchwiki.biligame.com/images/dwrg/7/75/owssza9ea0gmmgs0ryaruvs7wphus54.png',
+      'https://patchwiki.biligame.com/images/dwrg/6/6c/oc8yjny8z2urrxbvzw1clxf45ordth4.png',
+      'https://patchwiki.biligame.com/images/dwrg/7/71/7c4e3jt4ucbaah5zbmqrbjnjkcmxh2a.png'
+    ],
+    fixedHint: '月亮河公园的密码机分布非常有规律。以河为界，河上北桥（A组）必然有1台，右侧区（B组）和左侧区（C组）每区必然刷新3台，形成3+1+3=7的布局。左侧区五个刷点构成五边形，对于该五边形，若某点没机，则其相邻两点必然有机。注意，新版刷点的北桥必刷机的实际位置在桥东。',
+    hints: [
+      '起点站和废弃木马都没机情况。',
+      '若起点站被封，可以往惊叫屋废墟方向找机；反之亦然。',
+      '',
+      '',
+      '若起点站被封，可以往惊叫屋废墟方向找机；反之亦然。'
+    ],
+    zoneNames: ['左上 马戏团', '左中 狮笼', '左下 4号站台', '中左上 北桥', '中左中 3号站台', '中左下 旋转木马', '中右上 废弃木马', '中右中 2号站台', '中右下 惊叫屋', '右上 1号站台', '右中 1号站台南', '右下 惊叫屋废墟']
+  },
+  {
+    id: 5, name: '里奥的回忆', nameEn: "Leo's Memory",
+    size: [750, 632],
+    zonesInfo: [38, 29, 221.5, 193.5, 3, 3],
+    ciphersCoords: [
+      [0, 2, 3, 5, 6, 8, 11],
+      [0, 2, 3, 4, 7, 8, 9],
+      [1, 2, 3, 4, 6, 8, 10],
+      [0, 2, 4, 5, 7, 9, 11],
+      [0, 1, 4, 6, 8, 10, 11]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/9/95/nwhhd047xrhvf2tvk6hi42km5bu8zrr.png',
+      'https://patchwiki.biligame.com/images/dwrg/b/b6/d4fkfud4g9b3rg6q7j0twb4bc3ywixz.png',
+      'https://patchwiki.biligame.com/images/dwrg/9/96/rpkaauz7k98ou5yh1u89198xm0gejas.png',
+      'https://patchwiki.biligame.com/images/dwrg/3/38/44le7vjnnbnqv732kvkf1vx1fudjmod.png',
+      'https://patchwiki.biligame.com/images/dwrg/b/be/7u1rdjfupq66iodkhgestlx1piqibk9.png'
+    ],
+    fixedHint: '里奥的回忆在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。①若右侧区有三台，有一台必然在圣诞树；反之亦然。若右侧区只有两台，则圣诞树没机；反之亦然。②小屋 和 侧门/油罐 一定同时出现或同时不出现。③小屋和中场都有机 = 侧门废墟没机；小屋和中场仅有一 = 侧门废墟有机。④小屋和圣诞树都有机 = 废料区没机；小屋和圣诞树仅有一 = 废料区有机。⑤若中场有机，则废料区有机。',
+    hints: [
+      '若小屋没机，则侧门油罐都没机；反之亦然。可以发现，此时左侧区和中间区都只有两台，所以右侧区有三台，圣诞树有机。简言之，如果你发现小屋没机（或侧门油罐都没机），全图的密码机分布就能确定了。',
+      '若废料区没机，则中场也没机。可以发现，此时左侧区和中间区都只有两台，所以右侧区有三台，圣诞树有机。简言之，如果你发现废料区没机，全图的密码机分布就能确定了。',
+      '若废料区没机，则中场也没机。可以发现，此时左侧区和中间区都只有两台，所以右侧区有三台，圣诞树有机。简言之，如果你发现废料区没机，全图的密码机分布就能确定了。',
+      '若小屋中场都有机，即中间区有三台，则侧门废墟没机；反之亦然，若侧门废墟没机，则小屋中场都有机，中间区有三台。简言之，如果你发现侧门废墟没机（或小屋中场都有机），全图的密码机分布就能确定了。',
+      '若水箱废墟没机，则左侧区有三台；反之亦然。注意，虽然中场有机代表废料区有机，但废料区有机不代表中场有机。注意，虽然废料区没机代表中场没机，但中场没机不代表废料区没机。'
+    ],
+    zoneNames: ['左上 侧门废墟', '左中 侧门', '左下 废料区', '中上 小屋', '中心 中场', '中下 工厂', '右上 正门废墟', '右中 装箱区', '右下 水箱废墟']
+  },
+  {
+    id: 6, name: '永眠镇', nameEn: 'Eversleeping Town',
+    size: [885, 750],
+    zonesInfo: [35, 41, 196, 209.5, 3, 3],
+    ciphersCoords: [
+      [0, 2, 4, 6, 7, 10, 11],
+      [0, 1, 4, 5, 8, 9, 10],
+      [0, 1, 4, 6, 7, 9, 11],
+      [0, 2, 3, 5, 7, 10, 12],
+      [0, 1, 3, 5, 8, 10, 11]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/4/45/964xxfpeselb8h2z36eb411sg760x7u.png',
+      'https://patchwiki.biligame.com/images/dwrg/1/1d/01chh6s7ipy702jx4rvy6083z6c8x0r.png',
+      'https://patchwiki.biligame.com/images/dwrg/6/61/e0u30pygolex9olpniigkmw8p1tzlkt.png',
+      'https://patchwiki.biligame.com/images/dwrg/f/f3/k32lwkzrkhip2g7nv6j6qjlevjg3q8d.png',
+      'https://patchwiki.biligame.com/images/dwrg/f/ff/j5xy2l4dw4jt23dte46r16lxs3pgfav.png'
+    ],
+    fixedHint: '永眠镇的密码机分布非常有规律。周边有五组二刷一（ABCDE组），中间有一组四刷二（F组），分布均匀，容易记忆。',
+    hints: [
+      '',
+      '',
+      '',
+      '',
+      ''
+    ],
+    zoneNames: ['左上 旧艺伎楼', '左中 商店街北', '左下 电车总站', '中上 商店街东', '中心 商店街正街', '中下 商店街西', '右上 墓园北', '右中 艺伎楼', '右下 侧门', '右侧 墓园']
+  },
+  {
+    id: 7, name: '唐人街', nameEn: 'China Town',
+    size: [750, 649],
+    zonesInfo: [48, 25, 225.5, 198.5, 3, 3],
+    ciphersCoords: [
+      [0, 1, 2, 4, 6, 9, 10],
+      [0, 2, 3, 5, 7, 8, 10],
+      [0, 1, 3, 5, 7, 9, 10],
+      [0, 1, 2, 3, 7, 8, 10],
+      [0, 2, 5, 7, 8, 10, 11],
+      [0, 1, 3, 4, 6, 8, 11]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/1/1e/6cett46f3h5l98sj2p50exc8r8enqwb.png',
+      'https://patchwiki.biligame.com/images/dwrg/7/7d/thoyq1pig3bhf8xiassd2im5ipcy1ek.png',
+      'https://patchwiki.biligame.com/images/dwrg/8/8e/3hruvqrze9l6na9wbwoipybnzg76ybu.png',
+      'https://patchwiki.biligame.com/images/dwrg/2/25/6zayzgi0z4jj499g89j1xknc2md0zrq.png',
+      'https://patchwiki.biligame.com/images/dwrg/0/07/nqb2xz0xdt664ry36q01c37zbqfgbp0.png',
+      'https://patchwiki.biligame.com/images/dwrg/2/21/hzwhvywg00vfp05aif26o5t2c7x2254.png'
+    ],
+    fixedHint: '唐人街在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。注意，酒楼和书店的密码机属于中间区。',
+    hints: [
+      '肉铺+烧饼店+扎纸铺容易形成三连，建议优先破开其中一台。',
+      '烧饼店+扎纸铺+酒楼容易形成极为靠近的三连，建议优先破开其中一台。',
+      '若扎纸铺没机，则肉铺和酒楼都有机（由A2组B1组的规律推导出）。',
+      '右方四连情况/花店中场都没机情况：右方足足四台，导致花店没机（相当于从中间搬过去了一台）。右方极容易形成三连，建议优先破开其中一台。简言之，如果你看到中场和花店都没机，则右方四连，赶紧把右方优先破开。',
+      '右侧两台情况/左侧三台情况：右侧区仅有两台，导致左侧区有三台（右侧少的一台补给了左侧）。狮子楼+杂货店+古槐树容易形成三连，建议优先破开其中一台。',
+      '若扎纸铺没机，则肉铺和酒楼都有机（由A2组B1组的规律推导出）。'
+    ],
+    zoneNames: ['左上 裁缝铺', '左中 狮子楼', '左下 杂货店', '中上 花店', '中心 古槐树', '中下 红伞巷', '右上 肉铺', '右中 扎纸铺', '右下 酒楼']
+  },
+  {
+    id: 8, name: '不归林', nameEn: 'Darkwoods',
+    size: [750, 773],
+    zonesInfo: [25, 27, 236, 232, 3, 3],
+    ciphersCoords: [
+      [1, 2, 5, 6, 8, 10, 14],
+      [0, 3, 5, 6, 8, 11, 14],
+      [0, 3, 4, 7, 8, 11, 12],
+      [0, 3, 4, 7, 9, 11, 13],
+      [0, 3, 4, 6, 9, 11, 13]
+    ],
+    urls: [
+      'https://patchwiki.biligame.com/images/dwrg/e/ed/13u0a8atglt3e93fhw38jkprrpo0gve.png',
+      'https://patchwiki.biligame.com/images/dwrg/6/6d/edix8zibsfnx04a1var74q5o48iuipx.png',
+      'https://patchwiki.biligame.com/images/dwrg/8/82/myi4bykiz8wz8o3p4xai7kemo9jl3g4.png',
+      'https://patchwiki.biligame.com/images/dwrg/7/74/0i6lmjawp1aw54ysw8x0lw4ki0kydst.png',
+      'https://patchwiki.biligame.com/images/dwrg/b/b0/5gmh03iu3mjxxc3s29vtrohjeafx39o.png'
+    ],
+    fixedHint: '不归林的密码机分布非常有规律。六组二刷一（ABCDEF组），一组三刷一（G组），分布均匀，容易记忆。',
+    hints: [
+      '',
+      '',
+      '若饲养棚没机，则中场双板有机（由G组三刷一规律推导出），且正门废墟有机（因为中场只会出现一台，由E组二刷一规律推导出）。简言之，如果你看到中场和正门废墟各有一台，则饲养棚没机。',
+      '',
+      ''
+    ],
+    zoneNames: ['左上 侧门废墟', '左中 篝火堆', '左下 猎人木屋', '中上 河道上段', '中心 中场', '中下 饲养棚', '右上 河道下段', '右中 正门废墟', '右下 扎营点']
+  }
+];
+
+const CIPHER_DATA = [
+  [
+     { point: [265, 493], name: '沙包', feature: 'A组 必刷机' },
+    { point: [506, 487], name: '工厂内', feature: 'B组 二刷一：工厂内/工厂外' },
+    { point: [469, 530], name: '工厂外', feature: 'B组 二刷一：工厂内/工厂外' },
+    { point: [565, 242], name: '正门', feature: 'C组 二刷一：正门/正门废墟' },
+    { point: [537, 162], name: '正门废墟', feature: 'C组 二刷一：正门/正门废墟' },
+    { point: [414, 96], name: '伐木林', feature: 'D组 二刷一：伐木林/人皇机' },
+    { point: [428, 276], name: '人皇机', feature: 'D组 二刷一：伐木林/人皇机' },
+    { point: [372, 352], name: '四合院', feature: 'E组 若四合院缺失 则小屋区两台' }, 
+    { point: [100, 453], name: '废料区', feature: 'F组 若四合院和人皇机同时出现 则不刷' },
+    { point: [234, 180], name: '小屋', feature: 'G组 小屋区 至少有一：小屋/侧门废墟/小屋北' },
+    { point: [170, 232], name: '侧门废墟', feature: 'G组 小屋区 至少有一：小屋/侧门废墟/小屋北' },
+    { point: [225, 79], name: '小屋北', feature: 'G组 小屋区 至少有一：小屋/侧门废墟/小屋北' }
+  ],
+  [
+    { point: [356, 297], name: '医院二楼', feature: 'A组 二刷一：医院二楼/鸟笼' },
+    { point: [324, 396], name: '鸟笼', feature: 'A组 二刷一：医院二楼/鸟笼' },
+    { point: [510, 147], name: '小屋', feature: 'B组 三刷二：小屋/小屋废墟东/小屋废墟西' },
+    { point: [377, 77], name: '小屋废墟东', feature: 'B组 三刷二：小屋/小屋废墟东/小屋废墟西' },
+    { point: [248, 96], name: '小屋废墟西', feature: 'B组 三刷二：小屋/小屋废墟东/小屋废墟西' },
+    { point: [149, 202], name: '医院雕像', feature: 'C组 三刷二：医院雕像/西废墟/正门' },
+    { point: [129, 415], name: '西废墟', feature: 'C组 三刷二：医院雕像/西废墟/正门' },
+    { point: [226, 480], name: '正门', feature: 'C组 三刷二：医院雕像/西废墟/正门' },
+    { point: [527, 346], name: '东废墟', feature: 'D组 三刷二：东废墟/废弃石像/正门三板' },
+    { point: [520, 506], name: '废弃石像', feature: 'D组 三刷二：东废墟/废弃石像/正门三板' },
+    { point: [422, 470], name: '正门三板', feature: 'D组 三刷二：东废墟/废弃石像/正门三板' }
+  ],
+  [
+    { point: [527, 435], name: '墓园', feature: 'A1组 必刷机' }, 
+    { point: [444, 160], name: '侧门', feature: 'A2组 至少有一：侧门/东废墟/人皇机' },
+    { point: [511, 242], name: '东废墟', feature: 'A2组 至少有一：侧门/东废墟/人皇机' },
+    { point: [401, 272], name: '人皇机', feature: 'A2组 至少有一：侧门/东废墟/人皇机' },
+    { point: [287, 143], name: '小屋', feature: 'B组 至少有二：小屋/教堂/红毯花园' },
+    { point: [296, 313], name: '教堂', feature: 'B组 至少有二：小屋/教堂/红毯花园' },
+    { point: [342, 499], name: '红毯花园', feature: 'B组 至少有二：小屋/教堂/红毯花园' },
+    { point: [121, 177], name: '北危墙', feature: 'C1组 至少有一：北危墙/北危墙单板' },
+    { point: [168, 240], name: '北危墙单板', feature: 'C1组 至少有一：北危墙/北危墙单板' },
+    { point: [131, 356], name: '危墙废墟', feature: 'C2组 至少有一：危墙废墟/南危墙' },
+    { point: [128, 475], name: '南危墙', feature: 'C2组 至少有一：危墙废墟/南危墙' }
+  ],
+  [
+    { point: [699, 433], name: '大船', feature: 'A1组 必刷机' },
+    { point: [614, 236], name: '海边石滩', feature: 'A2组 至少有一：海边石滩/海边木棚' },
+    { point: [601, 537], name: '海边木棚', feature: 'A2组 至少有一：海边石滩/海边木棚' },
+    { point: [435, 211], name: '浅滩草棚', feature: 'B组 至少有二：浅滩草棚/中场/正门' },
+    { point: [400, 450], name: '中场', feature: 'B组 至少有二：浅滩草棚/中场/正门' },
+    { point: [444, 620], name: '正门', feature: 'B组 至少有二：浅滩草棚/中场/正门' },
+    { point: [288, 221], name: '小屋', feature: 'C1组 二刷一：小屋/玉米地' },
+    { point: [241, 159], name: '玉米地', feature: 'C1组 二刷一：小屋/玉米地' },
+    { point: [242, 515], name: '双十一', feature: 'C2组 二刷一：双十一/工地草棚' },
+    { point: [189, 598], name: '工地草棚', feature: 'C2组 二刷一：双十一/工地草棚' },
+    { point: [228, 410], name: '小船', feature: 'C3组 若出现小船一定同时出现工地草棚' }
+  ],
+  [
+    { point: [311, 148], name: '北桥', feature: 'A组 必刷机' },
+    { point: [486, 385], name: '惊叫屋', feature: 'B1组 必刷机' },
+    { point: [386, 280], name: '二站', feature: 'B1组 二刷一：惊叫屋/二站' },
+    { point: [590, 263], name: '一点五站', feature: 'B2组 至少有一：一点五站/惊叫屋废墟' },
+    { point: [665, 391], name: '惊叫屋废墟', feature: 'B2组 至少有一：一点五站/惊叫屋废墟' },
+    { point: [689, 158], name: '起点站', feature: 'B3组' },
+    { point: [521, 147], name: '废弃木马', feature: 'B3组' },
+    { point: [129, 153], name: '马戏团', feature: 'C组 西区 五刷三' },
+    { point: [36, 236], name: '狮笼', feature: 'C组 西区 五刷三' },
+    { point: [83, 383], name: '终点站', feature: 'C组 西区 五刷三' },
+    { point: [223, 444], name: '旋转木马', feature: 'C组 西区 五刷三' },
+    { point: [260, 309], name: '三站', feature: 'C组 西区 五刷三' }
+  ],
+  [
+    { point: [647, 197], name: '正门废墟', feature: 'A1组 三刷二：正门废墟/装箱区/水箱废墟' },
+    { point: [550, 316], name: '装箱区', feature: 'A1组 三刷二：正门废墟/装箱区/水箱废墟' },
+    { point: [643, 460], name: '水箱废墟', feature: 'A1组 三刷二：正门废墟/装箱区/水箱废墟' },
+    { point: [508, 112], name: '圣诞树', feature: 'A2组' },
+    { point: [346, 176], name: '小屋', feature: 'B1组 至少有一：小屋/中场' },
+    { point: [344, 280], name: '中场', feature: 'B1组 至少有一：小屋/中场 有中场一定有废料区' },
+    { point: [351, 524], name: '工厂内', feature: 'B2组 二刷一：工厂内/工厂外' },
+    { point: [457, 514], name: '工厂外', feature: 'B2组 二刷一：工厂内/工厂外' },
+    { point: [135, 125], name: '侧门废墟', feature: 'C组 西区 至少有二' },
+    { point: [133, 338], name: '侧门', feature: 'C组 西区 至少有二 侧门/油桶不同时出现' },
+    { point: [206, 307], name: '油桶', feature: 'C组 西区 至少有二 侧门/油桶不同时出现' },
+    { point: [88, 530], name: '废料区', feature: 'C组 西区 至少有二 若废料区缺失则中场也缺失' }
+  ],
+  [
+    { point: [468, 649], name: 'S板', feature: 'A组 必刷机' },
+    { point: [237, 589], name: '电车总站', feature: 'B组 二刷一：电车总站/双十一' },
+    { point: [209, 492], name: '双十一', feature: 'B组 二刷一：电车总站/双十一' },
+    { point: [176, 230], name: '旧艺伎楼楼梯', feature: 'C组 二刷一：旧艺伎楼楼梯/旧艺伎楼双板' },
+    { point: [198, 88], name: '旧艺伎楼双板', feature: 'C组 二刷一：旧艺伎楼楼梯/旧艺伎楼双板' },
+    { point: [417, 198], name: '红蝶亭', feature: 'D组 二刷一：红蝶亭/墓园北' },
+    { point: [502, 94], name: '墓园北', feature: 'D组 二刷一：红蝶亭/墓园北' },
+    { point: [720, 204], name: '墓园内', feature: 'E组 二刷一：墓园内/墓园外' },
+    { point: [631, 280], name: '墓园外', feature: 'E组 二刷一：墓园内/墓园外' },
+    { point: [146, 296], name: '正门', feature: 'F组 四刷二 至少有一：正门/中场' },
+    { point: [364, 362], name: '中场', feature: 'F组 四刷二 至少有一：正门/中场' },
+    { point: [506, 376], name: '艺伎楼二楼', feature: 'F组 四刷二' },
+    { point: [566, 432], name: '侧门', feature: 'F组 四刷二' }
+  ],
+  [
+    { point: [610, 317], name: '烧饼店', feature: 'A1组 必刷机' },
+    { point: [581, 140], name: '肉铺', feature: 'A2组 至少有一：肉铺/扎纸铺' },
+    { point: [615, 474], name: '扎纸铺', feature: 'A2组 至少有一：肉铺/扎纸铺 至少有一：扎纸铺/酒楼' },
+    { point: [491, 550], name: '酒楼', feature: 'B1组 至少有一：扎纸铺/酒楼' },
+    { point: [393, 355], name: '中场', feature: 'B2组 中场+书店一定同时出现' },
+    { point: [424, 187], name: '花店', feature: 'B2组 有花店一定有古槐树' },
+    { point: [253, 461], name: '书店', feature: 'B3组 二刷一：书店/古槐树' },
+    { point: [279, 391], name: '古槐树', feature: 'B3组 二刷一：书店/古槐树' },
+    { point: [192, 124], name: '裁缝铺内', feature: 'C1组 二刷一：裁缝铺内/裁缝铺外' },
+    { point: [227, 192], name: '裁缝铺外', feature: 'C1组 二刷一：裁缝铺内/裁缝铺外' },
+    { point: [98, 446], name: '杂货店', feature: 'C2组 至少有一：杂货店/狮子楼' },
+    { point: [66, 301], name: '狮子楼', feature: 'C2组 至少有一：杂货店/狮子楼' }
+  ],
+  [
+    { point: [248, 582], name: '猎人木屋', feature: 'A组 二刷一：猎人木屋/木屋S板' },
+    { point: [248, 445], name: '木屋S板', feature: 'A组 二刷一：猎人木屋/木屋S板' },
+    { point: [228, 162], name: '篝火堆北', feature: 'B组 二刷一：篝火堆北/篝火堆南' },
+    { point: [157, 270], name: '篝火堆南', feature: 'B组 二刷一：篝火堆北/篝火堆南' },
+    { point: [321, 170], name: '河道上段单板', feature: 'C组 二刷一：河道上段单板/河道上段双板' },
+    { point: [390, 248], name: '河道上段双板', feature: 'C组 二刷一：河道上段单板/河道上段双板' },
+    { point: [660, 130], name: '河道下段', feature: 'D组 二刷一：河道下段/河道二楼' },
+    { point: [539, 244], name: '河道二楼', feature: 'D组 二刷一：河道下段/河道二楼' },
+    { point: [637, 335], name: '正门废墟', feature: 'E组 二刷一：正门废墟/中场一板一窗' },
+    { point: [474, 398], name: '中场一板一窗', feature: 'E组 二刷一：正门废墟/中场一板一窗' },
+    { point: [530, 559], name: '树屋哨卡', feature: 'F组 二刷一：树屋哨卡/扎营点' },
+    { point: [646, 538], name: '扎营点', feature: 'F组 二刷一：树屋哨卡/扎营点' },
+    { point: [405, 448], name: '中场双板', feature: 'G组 三刷一：中场双板/饲养棚内/饲养棚外' },
+    { point: [468, 604], name: '饲养棚内', feature: 'G组 三刷一：中场双板/饲养棚内/饲养棚外' },
+    { point: [381, 671], name: '饲养棚外', feature: 'G组 三刷一：中场双板/饲养棚内/饲养棚外' }
+  ]
+];
+
+
+function calculateMapsZonesRelative() {
+  const mapsZonesRelative = []
+  for (let i_info = 0; i_info < MAPS_DATA.length; i_info++) {
+    const info = MAPS_DATA[i_info].zonesInfo
+    const mapSize = MAPS_DATA[i_info].size
+    const x_init = info[0], y_init = info[1], w = info[2], h = info[3], num_h = info[4], num_v = info[5]
+    const imgW = mapSize[0], imgH = mapSize[1]
+    const x_init_rel = x_init / imgW, y_init_rel = y_init / imgH, w_rel = w / imgW, h_rel = h / imgH
+    const mapZones = []
+    if (i_info === 2) {
+      for (let i = 0; i < num_h; i++) {
+        for (let j = 0; j < num_v; j++) {
+          mapZones.push({
+            x: x_init_rel + i * w_rel,
+            y: y_init_rel - i * 0.125 * h_rel + j * h_rel,
+            width: w_rel,
+            height: h_rel
+          })
+        }
+      }
+    } else {
+      for (let i = 0; i < num_h; i++) {
+        for (let j = 0; j < num_v; j++) {
+          mapZones.push({
+            x: x_init_rel + i * w_rel,
+            y: y_init_rel + j * h_rel,
+            width: w_rel,
+            height: h_rel
+          })
+        }
+      }
+      if (i_info === 6) {
+        mapZones.push({
+          x: x_init_rel + 3 * w_rel,
+          y: y_init_rel,
+          width: 1.19 * w_rel,
+          height: 1.7 * h_rel
+        })
+      }
+    }
+    mapsZonesRelative.push(mapZones)
+  }
+  return mapsZonesRelative
+}
+
+function calculateCiphersCoordsRelative() {
+  const ciphersRelative = []
+  for (let i_map = 0; i_map < MAPS_DATA.length; i_map++) {
+    const mapSize = MAPS_DATA[i_map].size
+    const imgW = mapSize[0], imgH = mapSize[1]
+    const cipherData = CIPHER_DATA[i_map]
+    const mapCiphers = MAPS_DATA[i_map].ciphersCoords
+    const mapCiphersRelative = []
+    for (let i_group = 0; i_group < mapCiphers.length; i_group++) {
+      const group = mapCiphers[i_group], groupRelative = []
+      for (let i_cipher = 0; i_cipher < group.length; i_cipher++) {
+        const idx = group[i_cipher]
+        const pt = cipherData[idx].point
+        groupRelative.push([pt[0] / imgW, pt[1] / imgH])
+      }
+      mapCiphersRelative.push(groupRelative)
+    }
+    ciphersRelative.push(mapCiphersRelative)
+  }
+  return ciphersRelative
+}
+
+function calculateZoneCenters(zones) {
+  return zones.map(zone => ({ x: zone.x + zone.width / 2, y: zone.y + zone.height / 2 }))
+}
+
+function calculateLockCipher(hunterPos, ciphers, mapSize) {
+  let maxDist = -1, idLock = 0
+  const imgW = mapSize[0], imgH = mapSize[1]
+  for (let i = 0; i < ciphers.length; i++) {
+    const dx = (hunterPos.x - ciphers[i][0]) * imgW
+    const dy = (hunterPos.y - ciphers[i][1]) * imgH
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    if (dist > maxDist) { maxDist = dist; idLock = i }
+  }
+  return idLock
+}
+
+const mapsZonesRelative = calculateMapsZonesRelative()
+const ciphersCoordsRelative = calculateCiphersCoordsRelative()
+
+let currentMapId = 0
+let currentSide = 1
+let currentCipherIndex = 0
+let survivorState = []
+let hunterState = []
+let chooseState = []
+let flagLock = false
+let lockCipherIndex = -1
+let selectedCipherIndex = -1
+
+const mapSelector = document.getElementById('mapSelector')
+const currentMapTitle = document.getElementById('currentMapTitle')
+const currentMapTitleEn = document.getElementById('currentMapTitleEn')
+const sideToggle = document.getElementById('sideToggle')
+const prevCipherBtn = document.getElementById('prevCipher')
+const nextCipherBtn = document.getElementById('nextCipher')
+const cipherText = document.getElementById('cipherText')
+const cipherDots = document.getElementById('cipherDots')
+const mapImage = document.getElementById('mapImage')
+const mapCanvas = document.getElementById('mapCanvas')
+const mapWrapper = document.getElementById('mapWrapper')
+const loadingOverlay = document.getElementById('loadingOverlay')
+const imageError = document.getElementById('imageError')
+const resetBtn = document.getElementById('resetBtn')
+const survivorInfo = document.getElementById('survivorInfo')
+const hunterInfo = document.getElementById('hunterInfo')
+const toastMessage = document.getElementById('toastMessage')
+
+let canvasCtx = null
+let canvasWidth = 0
+let canvasHeight = 0
+
+let survivorImg = new Image()
+let hunterImg = new Image()
+let survivorImgLoaded = false
+let hunterImgLoaded = false
+let survivorRetryTimer = null
+let hunterRetryTimer = null
+
+function setMapContainerHeight() {
+  const container = document.querySelector('.map-container')
+  const mapWrapper = document.getElementById('mapWrapper')
+  const mapSize = MAPS_DATA[currentMapId].size
+  const imgW = mapSize[0], imgH = mapSize[1]
+  const containerWidth = container.clientWidth
+  let displayHeight
+  if (currentMapId === 6) {
+    displayHeight = containerWidth * (imgW / imgH)
+  } else {
+    displayHeight = containerWidth * (imgH / imgW)
+  }
+  container.style.height = displayHeight + 'px'
+  mapWrapper.style.height = displayHeight + 'px'
+  mapWrapper.style.overflow = 'hidden'
+}
+
+function getImageDrawRect(canvasW, canvasH, mapId) {
+  if (mapId === 6) {
+    const mapSize = MAPS_DATA[mapId].size
+    const imgW = mapSize[0], imgH = mapSize[1]
+    const scale = Math.min(canvasW / imgH, canvasH / imgW)
+    const drawW = imgW * scale
+    const drawH = imgH * scale
+    return {
+      x: (canvasW - drawW) / 2,
+      y: (canvasH - drawH) / 2,
+      w: drawW,
+      h: drawH
+    }
+  }
+  const mapSize = MAPS_DATA[mapId].size
+  const imgW = mapSize[0], imgH = mapSize[1]
+  const imgAspect = imgW / imgH
+  const canvasAspect = canvasW / canvasH
+  if (canvasAspect > imgAspect) {
+    const drawH = canvasH
+    const drawW = canvasH * imgAspect
+    return { x: (canvasW - drawW) / 2, y: 0, w: drawW, h: drawH }
+  } else {
+    const drawW = canvasW
+    const drawH = canvasW / imgAspect
+    return { x: 0, y: 0, w: drawW, h: drawH }
+  }
+}
+
+function loadSurvivorImg() {
+  survivorImg = new Image()
+  survivorImg.crossOrigin = 'anonymous'
+  survivorImg.onload = () => {
+    survivorImgLoaded = true
+    if (survivorRetryTimer) { clearTimeout(survivorRetryTimer); survivorRetryTimer = null }
+    drawCanvas()
+  }
+  survivorImg.onerror = () => {
+    survivorImgLoaded = false
+    if (survivorRetryTimer) clearTimeout(survivorRetryTimer)
+    survivorRetryTimer = setTimeout(() => loadSurvivorImg(), 3350)
+    drawCanvas()
+  }
+  survivorImg.src = 'https://patchwiki.biligame.com/images/dwrg/4/45/omv2vmop0j63s9aprhjjkt4psykuy5p.png'
+  if (survivorImg.complete && survivorImg.naturalWidth > 0) {
+    survivorImg.onload()
+  }
+}
+
+function loadHunterImg() {
+  hunterImg = new Image()
+  hunterImg.crossOrigin = 'anonymous'
+  hunterImg.onload = () => {
+    hunterImgLoaded = true
+    if (hunterRetryTimer) { clearTimeout(hunterRetryTimer); hunterRetryTimer = null }
+    drawCanvas()
+  }
+  hunterImg.onerror = () => {
+    hunterImgLoaded = false
+    if (hunterRetryTimer) clearTimeout(hunterRetryTimer)
+    hunterRetryTimer = setTimeout(() => loadHunterImg(), 3350)
+    drawCanvas()
+  }
+  hunterImg.src = 'https://patchwiki.biligame.com/images/dwrg/7/7a/f3sec5gnnhzh1xprcbxeaxa1uuzhkmo.png'
+  if (hunterImg.complete && hunterImg.naturalWidth > 0) {
+    hunterImg.onload()
+  }
+}
+
+loadSurvivorImg()
+loadHunterImg()
+
+function showToast(msg) {
+  toastMessage.textContent = msg
+  toastMessage.classList.add('show')
+  setTimeout(() => {
+    toastMessage.classList.remove('show')
+  }, 1340)
+}
+
+function initMapSelector() {
+  const icons = ['🏭', '🏥', '⛪', '🏖️', '🎡', '🏠', '🏮', '🏯', '🌲']
+  MAPS_DATA.forEach((map, index) => {
+    const card = document.createElement('div')
+    card.className = `map-card ${index === 0 ? 'active' : ''}`
+    card.dataset.id = index
+    card.innerHTML = `
+      <div class="map-icon">${icons[index]}</div>
+      <div class="map-text">
+        <div class="map-name">${map.name}</div>
+        <div class="map-name-en">${map.nameEn}</div>
+      </div>
+    `
+    card.addEventListener('click', () => selectMap(index))
+    mapSelector.appendChild(card)
+  })
+}
+
+function selectMap(mapId) {
+  currentMapId = mapId
+  currentCipherIndex = 0
+
+  document.querySelectorAll('.map-card').forEach((card, idx) => {
+    card.classList.toggle('active', idx === mapId)
+  })
+
+  const map = MAPS_DATA[mapId]
+  currentMapTitle.textContent = map.name
+  currentMapTitleEn.textContent = map.nameEn
+
+  const zones = mapsZonesRelative[mapId]
+  survivorState = new Array(zones.length).fill(0)
+  hunterState = new Array(zones.length).fill(0)
+  chooseState = [...(currentSide === 1 ? survivorState : hunterState)]
+
+  flagLock = false
+  lockCipherIndex = -1
+  selectedCipherIndex = -1
+
+  updateCipherText()
+  updateCipherDots()
+  updateSelectionInfo()
+  updateDistancePanel()
+  loadMapImage()
+}
+
+let mapImageRetryTimer = null
+
+function loadMapImage() {
+  loadingOverlay.style.display = 'flex'
+  imageError.style.display = 'none'
+  mapImage.style.visibility = 'hidden'
+
+  const url = getImageUrl(currentMapId, currentCipherIndex)
+
+  if (mapImageRetryTimer) {
+    clearTimeout(mapImageRetryTimer)
+    mapImageRetryTimer = null
+  }
+
+  const preloadImg = new Image()
+  preloadImg.crossOrigin = 'anonymous'
+
+  preloadImg.onload = () => {
+    mapImage.crossOrigin = 'anonymous'
+    mapImage.src = url
+    loadingOverlay.style.display = 'none'
+    mapImage.style.visibility = 'visible'
+    setMapContainerHeight()
+    initCanvas()
+  }
+
+  preloadImg.onerror = () => {
+    loadingOverlay.style.display = 'none'
+    imageError.style.display = 'flex'
+    setMapContainerHeight()
+    if (mapImageRetryTimer) clearTimeout(mapImageRetryTimer)
+    mapImageRetryTimer = setTimeout(() => loadMapImage(), 5000)
+  }
+
+  preloadImg.src = url
+}
+
+function initCanvas() {
+  const rect = mapWrapper.getBoundingClientRect()
+  const scale = window.devicePixelRatio || 1
+
+  canvasWidth = rect.width
+  canvasHeight = rect.height
+
+  mapCanvas.width = canvasWidth * scale
+  mapCanvas.height = canvasHeight * scale
+  mapCanvas.style.width = canvasWidth + 'px'
+  mapCanvas.style.height = canvasHeight + 'px'
+
+  canvasCtx = mapCanvas.getContext('2d')
+  canvasCtx.scale(scale, scale)
+
+  drawCanvas()
+}
+
+function drawCanvas() {
+  if (!canvasCtx || canvasWidth <= 0 || canvasHeight <= 0) return
+
+  const ctx = canvasCtx
+  const zones = mapsZonesRelative[currentMapId]
+  const centers = calculateZoneCenters(zones)
+  const ciphers = ciphersCoordsRelative[currentMapId][currentCipherIndex]
+  const mapSize = MAPS_DATA[currentMapId].size
+  const imgW = mapSize[0], imgH = mapSize[1]
+
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+
+  if (currentMapId === 6) {
+    const scale = canvasWidth / imgH
+    ctx.save()
+    ctx.translate(canvasWidth / 2, canvasHeight / 2)
+    ctx.rotate(-Math.PI / 2)
+    ctx.translate(-imgW * scale / 2, -imgH * scale / 2)
+    ctx.drawImage(mapImage, 0, 0, imgW * scale, imgH * scale)
+    ctx.restore()
+  } else {
+    ctx.drawImage(mapImage, 0, 0, canvasWidth, canvasHeight)
+  }
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
+  ctx.lineWidth = 3
+  zones.forEach(zone => {
+    ctx.strokeRect(
+      zone.x * canvasWidth,
+      zone.y * canvasHeight,
+      zone.width * canvasWidth,
+      zone.height * canvasHeight
+    )
+  })
+
+  zones.forEach((zone, i) => {
+    const zoneW = zone.width * canvasWidth
+    const zoneH = zone.height * canvasHeight
+    const iconSize = Math.min(zoneW, zoneH) * 0.50
+
+    if (survivorState[i] > 0) {
+      const cx = centers[i].x * canvasWidth
+      const cy = centers[i].y * canvasHeight
+      if (survivorImgLoaded) {
+        const x = cx - iconSize / 2
+        const y = cy - iconSize / 2
+        ctx.save()
+        ctx.shadowBlur = 17
+        ctx.shadowColor = '#6366f1'
+        ctx.drawImage(survivorImg, x, y, iconSize, iconSize)
+        ctx.restore()
+      } else {
+        ctx.save()
+        ctx.shadowBlur = 10
+        ctx.shadowColor = '#00f0ff'
+        ctx.beginPath()
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.25)'
+        ctx.strokeStyle = '#00f0ff'
+        ctx.lineWidth = 2
+        ctx.arc(cx, cy, 8, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+        ctx.restore()
+
+        ctx.beginPath()
+        ctx.fillStyle = '#00f0ff'
+        ctx.arc(cx, cy, 3, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+
+    if (hunterState[i] < 0) {
+      const cx = centers[i].x * canvasWidth
+      const cy = centers[i].y * canvasHeight
+      if (hunterImgLoaded) {
+        const x = cx - iconSize / 2
+        const y = cy - iconSize / 2
+        ctx.save()
+        ctx.shadowBlur = 20
+        ctx.shadowColor = '#f472b6'
+        ctx.drawImage(hunterImg, x, y, iconSize, iconSize)
+        ctx.restore()
+      } else {
+        ctx.save()
+        ctx.shadowBlur = 13
+        ctx.shadowColor = '#ff2a6d'
+        ctx.beginPath()
+        ctx.fillStyle = 'rgba(255, 42, 109, 0.25)'
+        ctx.strokeStyle = '#ff2a6d'
+        ctx.lineWidth = 2
+        ctx.arc(cx, cy, 9, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+        ctx.restore()
+
+        ctx.beginPath()
+        ctx.fillStyle = '#ff2a6d'
+        ctx.arc(cx, cy, 3, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+  })
+
+  if (flagLock && lockCipherIndex >= 0) {
+    const lockCipher = ciphers[lockCipherIndex]
+    const lx = lockCipher[0] * canvasWidth
+    const ly = lockCipher[1] * canvasHeight
+
+    ctx.save()
+    ctx.shadowBlur = 17
+    ctx.shadowColor = '#fbbf24'
+    ctx.strokeStyle = '#fbbf24'
+    ctx.lineWidth = 3
+    ctx.setLineDash([4, 3])
+    ctx.beginPath()
+    ctx.arc(lx, ly, 15, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.setLineDash([])
+
+    ctx.fillStyle = '#fbbf24'
+    ctx.beginPath()
+    ctx.arc(lx, ly, 5, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.3)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.arc(lx, ly, 20, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  if (selectedCipherIndex >= 0) {
+    const selectedCipher = ciphers[selectedCipherIndex]
+    if (selectedCipher) {
+      const sx = selectedCipher[0] * canvasWidth
+      const sy = selectedCipher[1] * canvasHeight
+
+      ctx.save()
+      ctx.shadowBlur = 17
+      ctx.shadowColor = '#34d399'
+      ctx.strokeStyle = '#34d399'
+      ctx.lineWidth = 3
+      ctx.setLineDash([3, 2])
+      ctx.beginPath()
+      ctx.arc(sx, sy, 16, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.setLineDash([])
+
+      ctx.fillStyle = '#34d399'
+      ctx.beginPath()
+      ctx.arc(sx, sy, 4, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.strokeStyle = 'rgba(52, 211, 153, 0.3)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(sx, sy, 23, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.restore()
+    }
+  }
+}
+
+function toggleSide() {
+  currentSide = currentSide === 1 ? -1 : 1
+
+  const btns = sideToggle.querySelectorAll('.side-btn')
+  btns.forEach((btn, idx) => {
+    btn.classList.toggle('active', idx === (currentSide === 1 ? 0 : 1))
+  })
+
+  chooseState = [...(currentSide === 1 ? survivorState : hunterState)]
+  updateSelectionInfo()
+  drawCanvas()
+}
+
+function prevCipher() {
+  const count = MAPS_DATA[currentMapId].urls.length
+  currentCipherIndex = (currentCipherIndex - 1 + count) % count
+  updateCipherText()
+  updateCipherDots()
+  checkLock()
+  updateDistancePanel()
+  drawCanvas()
+  loadMapImage()
+}
+
+function nextCipher() {
+  const count = MAPS_DATA[currentMapId].urls.length
+  currentCipherIndex = (currentCipherIndex + 1) % count
+  updateCipherText()
+  updateCipherDots()
+  checkLock()
+  updateDistancePanel()
+  drawCanvas()
+  loadMapImage()
+}
+
+function updateCipherText() {
+  const count = MAPS_DATA[currentMapId].urls.length
+  const text = `第 ${currentCipherIndex + 1} / ${count} 组密码机`
+  cipherText.textContent = text
+
+}
+
+function updateCipherDots() {
+  const count = MAPS_DATA[currentMapId].urls.length
+  cipherDots.innerHTML = ''
+  for (let i = 0; i < count; i++) {
+    const dot = document.createElement('div')
+    dot.className = 'cipher-dot' + (i === currentCipherIndex ? ' active' : '')
+    cipherDots.appendChild(dot)
+  }
+
+}
+
+function checkLock() {
+  const hasHunter = hunterState.some(s => s < 0)
+  if (hasHunter) {
+    const centers = calculateZoneCenters(mapsZonesRelative[currentMapId])
+    let hunterPos = { x: 0, y: 0 }
+    for (let i = 0; i < hunterState.length; i++) {
+      if (hunterState[i] < 0) {
+        hunterPos = centers[i]
+        break
+      }
+    }
+    const ciphers = ciphersCoordsRelative[currentMapId][currentCipherIndex]
+    const mapSize = MAPS_DATA[currentMapId].size
+    lockCipherIndex = calculateLockCipher(hunterPos, ciphers, mapSize)
+    flagLock = true
+  } else {
+    flagLock = false
+    lockCipherIndex = -1
+  }
+  updateDistancePanel()
+}
+
+function handleMapClick(e) {
+  const rect = mapCanvas.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+
+  if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+    return
+  }
+
+  const x_rel = x / rect.width
+  const y_rel = y / rect.height
+
+  const zones = mapsZonesRelative[currentMapId]
+  for (let i = 0; i < zones.length; i++) {
+    const zone = zones[i]
+    if (x_rel >= zone.x && x_rel <= zone.x + zone.width &&
+        y_rel >= zone.y && y_rel <= zone.y + zone.height) {
+      changeStates(i)
+
+      const center = calculateZoneCenters(zones)[i]
+      const ripple = document.createElement('div')
+      ripple.className = 'zone-click-effect'
+      ripple.style.left = (center.x * rect.width) + 'px'
+      ripple.style.top = (center.y * rect.height) + 'px' 
+      if (currentSide > 0) {
+        ripple.style.borderColor = '#3b82f6'
+        ripple.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.5)'
+      } else {
+        ripple.style.borderColor = '#ef4444'
+        ripple.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.5)'
+      }
+      mapWrapper.appendChild(ripple)
+      setTimeout(() => ripple.remove(), 536)
+
+      return
+    }
+  }
+}
+
+function changeStates(index) {
+  if (currentSide > 0) {
+    if (hunterState[index] < 0) {
+      showToast('该区域已被监管者选择，求生者无法选择')
+      return
+    }
+    if (survivorState[index] > 0) {
+      survivorState[index] = 0
+      chooseState[index] = 0
+    } else if (survivorState[index] === 0) {
+      const count = survivorState.filter(s => s > 0).length
+      if (count < 4) {
+        survivorState[index] = 1
+        chooseState[index] = 1
+      }
+    }
+  } else {
+    if (survivorState[index] > 0) {
+      showToast('该区域已被求生者选择，监管者无法选择')
+      return
+    }
+    if (hunterState[index] === 0) {
+      hunterState.forEach((s, i) => {
+        if (s < 0) {
+          hunterState[i] = 0
+          chooseState[i] = 0
+        }
+      })
+      hunterState[index] = -1
+      chooseState[index] = -1
+
+      const centers = calculateZoneCenters(mapsZonesRelative[currentMapId])
+      const hunterPos = centers[index]
+      const ciphers = ciphersCoordsRelative[currentMapId][currentCipherIndex]
+      const mapSize = MAPS_DATA[currentMapId].size
+      lockCipherIndex = calculateLockCipher(hunterPos, ciphers, mapSize)
+      flagLock = true
+    } else if (hunterState[index] < 0) {
+      hunterState[index] = 0
+      chooseState[index] = 0
+      flagLock = false
+      lockCipherIndex = -1
+    }
+  }
+
+  updateSelectionInfo()
+  drawCanvas()
+}
+
+function updateSelectionInfo() {
+  const sCount = survivorState.filter(s => s > 0).length
+  const hCount = hunterState.filter(s => s < 0).length
+  survivorInfo.textContent = `求生者已选择 ${sCount} / 4 个区域`
+  hunterInfo.textContent = `监管者已选择 ${hCount} / 1 个区域`
+  updateDistancePanel()
+}
+
+function updateDistancePanel() {
+  const hunterZoneName = document.getElementById('hunterZoneName')
+  const hunterPixelCoord = document.getElementById('hunterPixelCoord')
+  const mapSizeEl = document.getElementById('mapSize')
+  const cipherRows = document.getElementById('cipherRows')
+  const lockCipherName = document.getElementById('lockCipherName')
+  const lockCipherDist = document.getElementById('lockCipherDist')
+
+  const hasHunter = hunterState.some(s => s < 0)
+  const mapSize = MAPS_DATA[currentMapId].size
+  mapSizeEl.textContent = mapSize[0] + ' × ' + mapSize[1]
+
+  const zones = mapsZonesRelative[currentMapId]
+  const centers = calculateZoneCenters(zones)
+  const zoneNamesList = MAPS_DATA[currentMapId].zoneNames
+  let hunterZoneIdx = -1
+  let hunterPos = { x: 0, y: 0 }
+
+  if (hasHunter) {
+    for (let i = 0; i < hunterState.length; i++) {
+      if (hunterState[i] < 0) {
+        hunterZoneIdx = i
+        hunterPos = centers[i]
+        break
+      }
+    }
+  }
+
+  const cipherGroup = MAPS_DATA[currentMapId].ciphersCoords[currentCipherIndex]
+  const ciphers = ciphersCoordsRelative[currentMapId][currentCipherIndex]
+  const cipherData = CIPHER_DATA[currentMapId]
+  let maxDist = -1, farthestIdx = 0
+  let lockDist = 0, lockName = '--'
+
+  const rows = ciphers.map((cipher, idx) => {
+    const px = Math.round(cipher[0] * mapSize[0])
+    const py = Math.round(cipher[1] * mapSize[1])
+    let pixelDist = 0
+    if (hasHunter) {
+      const dx = (hunterPos.x - cipher[0]) * mapSize[0]
+      const dy = (hunterPos.y - cipher[1]) * mapSize[1]
+      pixelDist = Math.sqrt(dx * dx + dy * dy)
+      if (pixelDist > maxDist) { maxDist = pixelDist; farthestIdx = idx }
+    }
+    return { idx, name: cipherData[cipherGroup[idx]].name, feature: cipherData[cipherGroup[idx]].feature, pixel: [px, py], dist: pixelDist }
+  })
+
+  if (hasHunter && flagLock && lockCipherIndex >= 0) {
+    lockDist = rows[lockCipherIndex].dist
+    lockName = rows[lockCipherIndex].name
+  }
+
+  if (hasHunter) {
+    const hunterPixelX = Math.round(hunterPos.x * mapSize[0])
+    const hunterPixelY = Math.round(hunterPos.y * mapSize[1])
+    hunterZoneName.textContent = zoneNamesList[hunterZoneIdx] || '未知区域'
+    hunterPixelCoord.textContent = hunterPixelX + ', ' + hunterPixelY
+    lockCipherName.textContent = lockName
+    lockCipherDist.textContent = hasHunter && flagLock ? lockDist.toFixed(1) + ' px' : '--'
+  } else {
+    hunterZoneName.textContent = '--'
+    hunterPixelCoord.textContent = '--'
+    lockCipherName.textContent = '--'
+    lockCipherDist.textContent = '--'
+  }
+
+  // 更新提示
+  const hintFixed = document.getElementById('hintFixed')
+  const hintDynamic = document.getElementById('hintDynamic')
+  const fixedHint = MAPS_DATA[currentMapId].fixedHint
+  const hints = MAPS_DATA[currentMapId].hints
+  hintFixed.textContent = fixedHint || '--'
+  const dynamicHint = hints && hints[currentCipherIndex] ? hints[currentCipherIndex].trim() : ''
+  if (dynamicHint) {
+    hintDynamic.textContent = dynamicHint
+    hintDynamic.style.display = 'block'
+  } else {
+    hintDynamic.style.display = 'none'
+  }
+
+  cipherRows.innerHTML = rows.map((r, i) => {
+    const isFarthest = hasHunter && i === farthestIdx
+    const isSelected = i === selectedCipherIndex
+    const isLocked = hasHunter && flagLock && i === lockCipherIndex
+    return `
+      <div class="cipher-row ${isFarthest ? 'farthest' : ''} ${isSelected ? 'selected-cipher' : ''} ${isLocked ? 'locked' : ''}" data-index="${i}">
+        <div class="cipher-id">${r.idx + 1}</div>
+        <div class="cipher-coord">${r.name}</div>
+        <div class="cipher-coord" style="font-size:12px;font-weight:500;color:var(--text-secondary);font-family:'Noto Sans SC',sans-serif;">${r.feature}</div>
+        <div class="cipher-coord">${r.pixel[0]}, ${r.pixel[1]}</div>
+      </div>
+    `
+  }).join('')
+
+  cipherRows.onclick = function(e) {
+    const row = e.target.closest('.cipher-row')
+    if (!row) return
+    const idx = parseInt(row.dataset.index)
+    if (isNaN(idx)) return
+    if (selectedCipherIndex === idx) {
+      selectedCipherIndex = -1
+    } else {
+      selectedCipherIndex = idx
+    }
+    updateDistancePanel()
+    drawCanvas()
+  }
+}
+
+function resetSelection() {
+  const zones = mapsZonesRelative[currentMapId]
+  survivorState = new Array(zones.length).fill(0)
+  hunterState = new Array(zones.length).fill(0)
+  chooseState = new Array(zones.length).fill(0)
+  flagLock = false
+  lockCipherIndex = -1
+  selectedCipherIndex = -1
+  updateSelectionInfo()
+  drawCanvas()
+}
+
+function getImageUrl(mapId, cipherIndex) {
+  return MAPS_DATA[mapId].urls[cipherIndex]
+}
+
+sideToggle.addEventListener('click', (e) => {
+  const btn = e.target.closest('.side-btn')
+  if (btn) toggleSide()
+})
+
+prevCipherBtn.addEventListener('click', prevCipher)
+nextCipherBtn.addEventListener('click', nextCipher)
+resetBtn.addEventListener('click', resetSelection)
+mapCanvas.addEventListener('click', handleMapClick)
+
+window.addEventListener('resize', () => {
+  if (mapImage.complete && mapImage.naturalWidth > 0) {
+    setMapContainerHeight()
+    initCanvas()
+  }
+})
+
+initMapSelector()
+selectMap(0)
+</script>
+</body>
+</html>

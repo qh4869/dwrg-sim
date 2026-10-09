@@ -290,7 +290,7 @@ body::before {
 
 .top-bar {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto auto;
   gap: 16px;
   align-items: center;
   background: var(--bg-card);
@@ -547,20 +547,22 @@ body::before {
   transform: translateY(-2px) scale(1.05);
   box-shadow: 0 5px 20px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.15);
 }
-.chest-btn {
+.chest-btn, .cellar-btn {
   padding: 9px 16px;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05));
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  color: var(--accent);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1px;
   white-space: nowrap;
   flex-shrink: 0;
   user-select: none;
+}
+.chest-btn {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: var(--accent);
   box-shadow: 0 3px 13px rgba(251, 191, 36, 0.08);
 }
 .chest-btn:hover {
@@ -574,7 +576,24 @@ body::before {
   border-color: transparent;
   box-shadow: 0 3px 13px var(--accent-glow), 0 0 0 1px rgba(255,255,255,0.1);
 }
-.chest-placeholder {
+.cellar-btn {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(52, 211, 153, 0.05));
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: var(--success);
+  box-shadow: 0 3px 13px rgba(52, 211, 153, 0.08);
+}
+.cellar-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  border-color: rgba(52, 211, 153, 0.5);
+  box-shadow: 0 3px 13px rgba(52, 211, 153, 0.2);
+}
+.cellar-btn.active {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: #04231a;
+  border-color: transparent;
+  box-shadow: 0 3px 13px var(--success-glow), 0 0 0 1px rgba(255,255,255,0.1);
+}
+.view-placeholder {
   display: flex;
   flex-direction: column;
 }
@@ -1016,6 +1035,16 @@ body::before {
 }
 
 @media (max-width: 804px) {
+  .top-bar {
+    /* 中等宽度下 5 个元素会挤成一行并溢出（top-bar 为 overflow:hidden），
+       改为 3 列布局让宝箱/地窖两个按钮换到第二行 */
+    grid-template-columns: auto 1fr auto;
+    row-gap: 9px;
+  }
+  .chest-btn, .cellar-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
   .content-grid {
     grid-template-columns: 1fr 482px;
   }
@@ -1151,6 +1180,7 @@ body::before {
           <div class="side-btn" data-side="-1">监管者</div>
         </div>
         <div class="chest-btn" id="chestBtn">宝箱位置</div>
+        <div class="cellar-btn" id="cellarBtn">地窖位置</div>
       </div>
 
       <div class="map-viewer">
@@ -1249,10 +1279,10 @@ body::before {
             </div>
           </div>
         </div>
-        <div class="chest-placeholder" id="chestPlaceholder" style="display: none;">
+        <div class="view-placeholder" id="viewPlaceholder" style="display: none;">
           <div class="hunter-position-card hint-card">
-            <h4>📦 宝箱说明</h4>
-            <div class="hint-text">宝箱说明待补充</div>
+            <h4 id="viewPlaceholderTitle">📦 宝箱说明</h4>
+            <div class="hint-text" id="viewPlaceholderText">宝箱说明待补充</div>
           </div>
         </div>
       </div>
@@ -1307,6 +1337,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1481, 1247],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/c/c1/7cr8uqnwmt7dlx2m21azrem8ojbi8h3.png',
+    cellarSize: [2401, 2062],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/7/79/jbz2gok7uqsmstjpdwkk5x8p6th838g.png/1200px-%E5%86%9B%E5%B7%A5%E5%8E%82_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '军工厂通过中场（DE组）的情况，就能确定全图的密码机分布。只要中场不是仅有一台在四合院的机的情况，小屋区（G组）就有两台。',
     hints: [
       '军工厂标准情况：若中场仅一台，且在四合院，则七台机呈均匀分布。',
@@ -1337,6 +1369,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1352, 1281],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/f/f3/s84gibpmm465kpuuemhsfjb9o0t6knv.png',
+    cellarSize: [2213, 2074],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/4/45/b4u0u0ll0sz7djihyx82ly2hasgaior.png/1200px-%E5%9C%A3%E5%BF%83%E5%8C%BB%E9%99%A2_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '圣心医院的密码机分布非常有规律。中心医院（A组）必然有1台，环绕医院的三大区（BCD组）每区必然刷新2台，形成1+2+2+2=7的布局。',
     hints: [
       '',
@@ -1367,6 +1401,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1278, 1272],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/4/46/q5i5tzev9uiltccjdjdnnmz2nb1lp0o.png',
+    cellarSize: [2047, 2062],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/9/95/0pjutzrv2upzt8dluogy4xmoq4stuwy.png/1200px-%E7%BA%A2%E6%95%99%E5%A0%82_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '红教堂在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。注意，人皇机属于右侧区。',
     hints: [
       '右上区域匮乏密码机，中心求生者容易与右中求生者撞机；若墓园机被封，右侧求生者只能选择破译人皇机。危墙容易形成三连。',
@@ -1397,6 +1433,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1320, 1287],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/6/6d/ehlalyw5aezsuy21rzamsreutowjmpn.png',
+    cellarSize: [2062, 2073],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/b/b3/p9y4k5n6qg1nkyyu46r9cm1mk9pdms5.png/1200px-%E6%B9%96%E6%99%AF%E6%9D%91_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '湖景村在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。',
     hints: [
       '若中场没机，则左侧区有三台，整体环形分布。如果你发现小船有机，则工地草棚也有机，也能说明左侧区有三台。',
@@ -1427,6 +1465,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1849, 1261],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/d/d7/634i13262ljj9aj5s2o6rtouvtteyv2.png',
+    cellarSize: [2335, 1620],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/4/43/rd4fskb8o0cx0j9cfwc9k3mnea1ort4.png/1200px-%E6%9C%88%E4%BA%AE%E6%B2%B3%E5%85%AC%E5%9B%AD_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '月亮河公园的密码机分布非常有规律。以河为界，河上北桥（A组）必然有1台，右侧区（B组）和左侧区（C组）每区必然刷新3台，形成3+1+3=7的布局。左侧区五个刷点构成五边形，对于该五边形，若某点没机，则其相邻两点必然有机。注意，新版刷点的北桥必刷机的实际位置在桥东。',
     hints: [
       '起点站和废弃木马都没机情况。',
@@ -1457,6 +1497,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1503, 1263],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/d/de/d4z39893vz7tj968ghznn3ehrpr4iid.png',
+    cellarSize: [2232, 1896],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/0/06/4iwcjde088my780ao0rxtuyqy90kxmv.png/1200px-%E9%87%8C%E5%A5%A5%E7%9A%84%E5%9B%9E%E5%BF%86_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '里奥的回忆在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。①若右侧区有三台，有一台必然在圣诞树；反之亦然。若右侧区只有两台，则圣诞树没机；反之亦然。②小屋 和 侧门/油罐 一定同时出现或同时不出现。③小屋和中场都有机 = 侧门废墟没机；小屋和中场仅有一 = 侧门废墟有机。④小屋和圣诞树都有机 = 废料区没机；小屋和圣诞树仅有一 = 废料区有机。⑤若中场有机，则废料区有机。',
     hints: [
       '若小屋没机，则侧门油罐都没机；反之亦然。可以发现，此时左侧区和中间区都只有两台，所以右侧区有三台，圣诞树有机。简言之，如果你发现小屋没机（或侧门油罐都没机），全图的密码机分布就能确定了。',
@@ -1487,6 +1529,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1231, 1426],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/1/13/gbfjxvzefrxlnkzazqz4j664n21wbbn.png',
+    cellarSize: [1794, 2075],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/0/09/3dumcffzd38b410jqswm3eg2pdwf4t7.png/1200px-%E6%B0%B8%E7%9C%A0%E9%95%87_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '永眠镇的密码机分布非常有规律。周边有五组二刷一（ABCDE组），中间有一组四刷二（F组），分布均匀，容易记忆。',
     hints: [
       '',
@@ -1519,6 +1563,8 @@ const MAPS_DATA = [
     ],
     chestSize: [1483, 1289],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/9/9b/4ivxh1bsadpz4rklu3v145nwsy7jefk.png',
+    cellarSize: [2198, 1893],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/b/b7/ethwmki6c5ijr1b0scaw86k8nmt9fjx.png/1200px-%E5%94%90%E4%BA%BA%E8%A1%97_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '唐人街在水平方向可以分为右侧区（A组）、中间区（B组）、左侧区（C组）。三大区里，有一个区刷新3台，另外两区每区刷新2台，形成3+2+2=7的布局。注意，酒楼和书店的密码机属于中间区。',
     hints: [
       '肉铺+烧饼店+扎纸铺容易形成三连，建议优先破开其中一台。',
@@ -1550,6 +1596,8 @@ const MAPS_DATA = [
     ],
     chestSize: [898, 925],
     chestUrl: 'https://patchwiki.biligame.com/images/dwrg/6/60/s0ppxefwd042wvv7t8c8z3sh8bmfrkh.png',
+    cellarSize: [2060, 2090],
+    cellarUrl: 'https://patchwiki.biligame.com/images/dwrg/thumb/d/dd/l61lkvowquvudo21l6c4sdm3ei0vgvv.png/1200px-%E4%B8%8D%E5%BD%92%E6%9E%97_%E4%BF%AF%E8%A7%86%E5%9B%BE_%E5%9C%B0%E7%AA%96%E5%88%B7%E7%82%B9.png',
     fixedHint: '不归林的密码机分布非常有规律。六组二刷一（ABCDEF组），一组三刷一（G组），分布均匀，容易记忆。',
     hints: [
       '',
@@ -1788,7 +1836,7 @@ let chooseState = []
 let flagLock = false
 let lockCipherIndex = -1
 let selectedCipherIndex = -1
-let chestMode = false
+let viewMode = 'cipher'
 
 const mapSelector = document.getElementById('mapSelector')
 const currentMapTitle = document.getElementById('currentMapTitle')
@@ -1809,6 +1857,7 @@ const hunterInfo = document.getElementById('hunterInfo')
 const toastMessage = document.getElementById('toastMessage')
 const cipherNav = document.getElementById('cipherNav')
 const chestBtn = document.getElementById('chestBtn')
+const cellarBtn = document.getElementById('cellarBtn')
 
 let canvasCtx = null
 let canvasWidth = 0
@@ -1824,11 +1873,14 @@ let hunterRetryTimer = null
 function setMapContainerHeight() {
   const container = document.querySelector('.map-container')
   const mapWrapper = document.getElementById('mapWrapper')
-  const mapSize = chestMode ? MAPS_DATA[currentMapId].chestSize : MAPS_DATA[currentMapId].size
+  const mapInfo = MAPS_DATA[currentMapId]
+  const mapSize = viewMode === 'chest' ? mapInfo.chestSize
+    : viewMode === 'cellar' ? mapInfo.cellarSize
+      : mapInfo.size
   const imgW = mapSize[0], imgH = mapSize[1]
   const containerWidth = container.clientWidth
   let displayHeight
-  if (!chestMode && currentMapId === 6) {
+  if (viewMode === 'cipher' && currentMapId === 6) {
     displayHeight = containerWidth * (imgW / imgH)
   } else {
     displayHeight = containerWidth * (imgH / imgW)
@@ -2031,7 +2083,7 @@ function drawCanvas() {
 
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
-  if (!chestMode && currentMapId === 6) {
+  if (viewMode === 'cipher' && currentMapId === 6) {
     const scale = canvasWidth / imgH
     ctx.save()
     ctx.translate(canvasWidth / 2, canvasHeight / 2)
@@ -2122,7 +2174,7 @@ function drawCanvas() {
     }
   })
 
-  if (!chestMode && flagLock && lockCipherIndex >= 0) {
+  if (viewMode === 'cipher' && flagLock && lockCipherIndex >= 0) {
     const lockCipher = ciphers[lockCipherIndex]
     const lx = lockCipher[0] * canvasWidth
     const ly = lockCipher[1] * canvasHeight
@@ -2151,7 +2203,7 @@ function drawCanvas() {
     ctx.restore()
   }
 
-  if (!chestMode && selectedCipherIndex >= 0) {
+  if (viewMode === 'cipher' && selectedCipherIndex >= 0) {
     const selectedCipher = ciphers[selectedCipherIndex]
     if (selectedCipher) {
       const sx = selectedCipher[0] * canvasWidth
@@ -2196,10 +2248,11 @@ function toggleSide() {
   drawCanvas()
 }
 
-function toggleChestMode() {
-  chestMode = !chestMode
-  chestBtn.classList.toggle('active', chestMode)
-  cipherNav.style.display = chestMode ? 'none' : ''
+function toggleViewMode(mode) {
+  viewMode = viewMode === mode ? 'cipher' : mode
+  chestBtn.classList.toggle('active', viewMode === 'chest')
+  cellarBtn.classList.toggle('active', viewMode === 'cellar')
+  cipherNav.style.display = viewMode === 'cipher' ? '' : 'none'
   updateDistancePanel()
   loadMapImage()
   drawCanvas()
@@ -2372,14 +2425,17 @@ function updateDistancePanel() {
   const lockCipherDist = document.getElementById('lockCipherDist')
 
   const distanceGrid = document.getElementById('distanceGrid')
-  const chestPlaceholder = document.getElementById('chestPlaceholder')
-  if (chestMode) {
+  const viewPlaceholder = document.getElementById('viewPlaceholder')
+  if (viewMode !== 'cipher') {
+    const isChest = viewMode === 'chest'
+    document.getElementById('viewPlaceholderTitle').textContent = isChest ? '📦 宝箱说明' : '🕳️ 地窖说明'
+    document.getElementById('viewPlaceholderText').textContent = isChest ? '宝箱说明待补充' : '地窖说明待补充'
     distanceGrid.style.display = 'none'
-    chestPlaceholder.style.display = 'flex'
+    viewPlaceholder.style.display = 'flex'
     return
   }
   distanceGrid.style.display = ''
-  chestPlaceholder.style.display = 'none'
+  viewPlaceholder.style.display = 'none'
 
   const hasHunter = hunterState.some(s => s < 0)
   const mapSize = MAPS_DATA[currentMapId].size
@@ -2495,7 +2551,8 @@ function resetSelection() {
 }
 
 function getImageUrl(mapId, cipherIndex) {
-  if (chestMode) return MAPS_DATA[mapId].chestUrl
+  if (viewMode === 'chest') return MAPS_DATA[mapId].chestUrl
+  if (viewMode === 'cellar') return MAPS_DATA[mapId].cellarUrl
   return MAPS_DATA[mapId].urls[cipherIndex]
 }
 
@@ -2507,7 +2564,8 @@ sideToggle.addEventListener('click', (e) => {
 prevCipherBtn.addEventListener('click', prevCipher)
 nextCipherBtn.addEventListener('click', nextCipher)
 resetBtn.addEventListener('click', resetSelection)
-chestBtn.addEventListener('click', toggleChestMode)
+chestBtn.addEventListener('click', () => toggleViewMode('chest'))
+cellarBtn.addEventListener('click', () => toggleViewMode('cellar'))
 mapCanvas.addEventListener('click', handleMapClick)
 
 window.addEventListener('resize', () => {
